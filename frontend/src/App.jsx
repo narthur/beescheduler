@@ -17,7 +17,7 @@ import userDataSchema from './userDataSchema.js';
 import {
   deepSetState
 } from './util.js';
-import ValidatedFormControl from './ValidatedFormControl.js';
+import ValidatedFormControl from './ValidatedFormControl.jsx';
 
 function getSLSBaseURL() {
   if (process.env.REACT_APP_LOCAL_SLS) {
