@@ -1,21 +1,15 @@
 "use strict";
 
-import aws from "aws-sdk";
+import { setsched } from "./setsched";
 
-const lambda = new aws.Lambda();
-
+// TODO: Consider using actual queue or deleting this wrapper
 export const queueSetSched = (uname: unknown) => {
   console.log(`queueing scheduling for: ${uname}`);
-  if (process.env.IS_OFFLINE) {
-    console.log("offline environment, not queueing async scheduling");
-    return Promise.resolve("offline");
-  } else {
-    return lambda
-      .invoke({
-        FunctionName: `beescheduler-${process.env.SLS_STAGE}-setsched`,
-        InvocationType: "Event",
-        Payload: JSON.stringify(uname),
-      })
-      .promise();
-  }
+  setsched(uname, {}, (err: unknown, res: unknown) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log(res);
+    }
+  });
 };
