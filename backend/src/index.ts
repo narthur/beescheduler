@@ -37,12 +37,22 @@ function adapter(
         queryStringParameters: req.query as Record<string, string>,
       },
       undefined,
-      (err: unknown, response: unknown) => {
+      (
+        err: unknown,
+        response: {
+          statusCode: number;
+          headers: Record<string, string>;
+          body: string;
+        }
+      ) => {
         if (err) {
           res.status(500).send(err);
           return;
         }
-        res.send(response);
+        res
+          .status(response.statusCode)
+          .set(response.headers)
+          .send(response.body);
       }
     );
   };

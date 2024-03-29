@@ -1,6 +1,13 @@
 "use strict";
 
-export type Callback = (err: unknown, res: unknown) => void;
+export type Callback = (
+  err: unknown,
+  res: {
+    statusCode: number;
+    headers: Record<string, string>;
+    body: string;
+  }
+) => void;
 
 export type DbUser = {
   id: number;
