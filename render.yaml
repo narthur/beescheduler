@@ -5,3 +5,17 @@ services:
     rootDir: frontend
     buildCommand: npm i -g pnpm && pnpm install && pnpm run build
     staticPublishPath: ./dist
+    envVars:
+      - key: VITE_BEESCHEDULER_API_URL
+        sync: false
+      - key: VITE_BEEMINDER_CLIENT_ID
+        sync: false
+  - name: beescheduler-api
+    type: web
+    runtime: node
+    rootDir: backend
+    buildCommand: npm i -g pnpm && pnpm install
+    startCommand: pnpm run start
+    envVars:
+      - key: BASEROW_DATABASE_TOKEN
+        sync: false

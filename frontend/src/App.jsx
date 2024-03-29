@@ -20,15 +20,7 @@ import {
 import ValidatedFormControl from './ValidatedFormControl.jsx';
 
 function getSLSBaseURL() {
-  if (process.env.REACT_APP_LOCAL_SLS) {
-    return "https://localhost:4000";
-  } else {
-    if (process.env.REACT_APP_SLS_BASEURL !== undefined) {
-      return process.env.REACT_APP_SLS_BASEURL;
-    } else {
-      alert("SLS base url not set!");
-    }
-  }
+  return import.meta.env.VITE_BEESCHEDULER_API_URL;
 }
 
 // There's some weirdness going on here. If I use {helpWell()} I get the right
