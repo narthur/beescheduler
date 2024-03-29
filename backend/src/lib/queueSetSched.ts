@@ -5,7 +5,7 @@ import aws from "aws-sdk";
 const lambda = new aws.Lambda();
 
 export const queueSetSched = (uname: unknown) => {
-  console.log("queueing scheduling for: " + uname);
+  console.log(`queueing scheduling for: ${uname}`);
   if (process.env.IS_OFFLINE) {
     console.log("offline environment, not queueing async scheduling");
     return Promise.resolve("offline");

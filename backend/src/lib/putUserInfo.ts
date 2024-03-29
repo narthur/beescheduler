@@ -11,17 +11,6 @@ export async function putUserInfo(uinfo: {
     [number, number, number, number, number, number, number]
   >;
 }): Promise<void> {
-  // const validationResult = jsonschema.validate(uinfo, userDataSchema);
-  // if (validationResult.valid) {
-  //   return doc
-  //     .put({
-  //       TableName: USERS_TABLE_NAME,
-  //       Item: uinfo,
-  //     })
-  //     .promise();
-  // } else {
-  //   return Promise.reject(validationResult.errors);
-  // }
   const sdk = getBaserow();
   const { user, goals } = await getStoredGoals(uinfo.name);
 
