@@ -29,6 +29,7 @@ export const setsched = (username: unknown, context: unknown, cb: Callback) => {
     _setsched(username).then(
       (res: unknown) => cb(null, res),
       (err: unknown) => {
+        // TODO:
         // FIXME: This should disable accounts with now-invalid
         // credentials.
         console.log(err);
