@@ -7,7 +7,7 @@ import jsonschema from "jsonschema";
 import aws from "aws-sdk";
 import dynamoBackup from "dynamo-backup-to-s3";
 import * as bm from "./beeminder";
-import userDataSchema from "./userDataSchema";
+import userDataSchema from "../userDataSchema";
 
 export type Callback = (err: unknown, res: unknown) => void;
 

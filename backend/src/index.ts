@@ -5,7 +5,7 @@ import {
   setGoalSchedule,
   jsonstring,
   Callback,
-} from "./handler";
+} from "./src/handler";
 
 const app = express();
 
