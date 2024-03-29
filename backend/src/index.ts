@@ -3,6 +3,8 @@ import { Callback } from "./types";
 import { setGoalSchedule } from "./lib/setGoalSchedule";
 import { getStoredGoalsHTTP } from "./lib/getStoredGoalsHTTP";
 import { getGoalSlugs } from "./lib/getGoalSlugs";
+import Cron from "croner";
+import { queueSetScheds } from "./lib/queueSetScheds";
 
 const app = express();
 
@@ -53,3 +55,7 @@ app.post("/storedGoals", adapter(setGoalSchedule));
 app.listen(3001, () => {
   console.log("Server is running on port 3001");
 });
+
+const DAILY = "0 0 * * *";
+
+new Cron(DAILY, queueSetScheds);
