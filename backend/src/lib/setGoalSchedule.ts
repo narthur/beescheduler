@@ -31,7 +31,8 @@ export const setGoalSchedule = (
       // If the token sent matches our database, we can assume it's good.
       tokenValidatedInDDB().then((validated: unknown) => {
         if (validated) {
-          queueSetSched(bodyParsed.name).then(() => putUserInfoAndExit());
+          queueSetSched(bodyParsed.name);
+          putUserInfoAndExit();
         } else {
           jsonResponse(cb, 401, "token doesn't match database");
         }
