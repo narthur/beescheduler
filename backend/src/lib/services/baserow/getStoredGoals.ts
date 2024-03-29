@@ -9,29 +9,6 @@ export async function getStoredGoals(username: string): Promise<{
   user: DbUser;
   goals: DbGoal[];
 }> {
-  // return doc
-  //   .get({
-  //     TableName: USERS_TABLE_NAME,
-  //     Key: {
-  //       name: username,
-  //     },
-  //   })
-  //   .promise()
-  //   .then((res: { Item?: Record<string, unknown> }) => {
-  //     if (_.isEqual(res, {})) {
-  //       return Promise.reject(goalError(GOAL_ERROR_TYPES.noSuchUser, ""));
-  //     } else {
-  //       const validationResult = jsonschema.validate(res.Item, userDataSchema);
-  //       if (validationResult.valid) {
-  //         return Promise.resolve(res.Item);
-  //       } else {
-  //         return Promise.reject(
-  //           goalError(GOAL_ERROR_TYPES.badDb, validationResult.errors)
-  //         );
-  //       }
-  //     }
-  //   });
-
   const sdk = getBaserow();
   const user = await getUser(username);
 
