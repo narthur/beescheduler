@@ -34,7 +34,7 @@ function adapter(
     handler(
       {
         body: req.body,
-        queryStringParameters: req.params,
+        queryStringParameters: req.query as Record<string, string>,
       },
       undefined,
       (err: unknown, response: unknown) => {
