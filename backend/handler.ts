@@ -1,22 +1,23 @@
 "use strict";
 
-const moment = require("moment");
-const _ = require("lodash/fp");
-const dynamodb = require("serverless-dynamodb-client");
+import moment, { Moment } from "moment";
+import _ from "lodash/fp";
+import dynamodb from "serverless-dynamodb-client";
+import jsonschema from "jsonschema";
+import aws from "aws-sdk";
+import dynamoBackup from "dynamo-backup-to-s3";
+import * as bm from "./beeminder";
+import userDataSchema from "./userDataSchema";
+
+export type Callback = (err: unknown, res: unknown) => void;
+
 const dynamoDoc = dynamodb.doc;
-const jsonschema = require("jsonschema");
-const aws = require("aws-sdk");
 const lambda = new aws.Lambda();
-const dynamoBackup = require("dynamo-backup-to-s3");
+const usersTableName = `users-${process.env.SLS_STAGE}`;
 
-const bm = require("./beeminder.js");
-const userDataSchema = require("./userDataSchema.js").userDataSchema;
-
-const usersTableName = "users-" + process.env.SLS_STAGE;
-
-function scheduleGoal(token, goalName, schedule) {
-  console.log("scheduleGoal " + goalName + " " + schedule);
-  let oneWeekOut = moment()
+function scheduleGoal(token: unknown, goalName: string, schedule: number[]) {
+  console.log(`scheduleGoal ${goalName} ${schedule}`);
+  const oneWeekOut = moment()
     .utcOffset(-4)
     .set({
       hour: 12,
@@ -25,62 +26,75 @@ function scheduleGoal(token, goalName, schedule) {
       millisecond: 0,
     })
     .add(7, "days");
-  return bm.getGoal(token, goalName).then((goalInfo) => {
-    // The idea here is to keep the road exactly the same up until the
-    // akrasia horizon, then schedule by days of the week from akrasia
-    // horizon to akrasia horizon + 7 days. To that end, we remove all
-    // segments before a week from today, add a new segment that continues
-    // the last rate up until the akrasia horizon, then add all our stuff
-    // after that.
-    console.log(goalInfo);
-    if (goalInfo.frozen) {
-      return Promise.reject(
-        "goal is frozen, editing road may cause spurious derail."
-      );
-    }
-    let rUnitMultiplier = bm.getRUnitMultiplier(goalInfo);
-    let truncatedRoad = goalInfo.roadall
-      .map((x) => [moment(x[0], "X"), x[1], x[2]])
-      .filter((x) => x[0] < oneWeekOut)
-      .map((x) => [bm.beeDateFormat(x[0]), x[1], x[2]]);
-    // Add the segment that continues at the same rate up until the akrasia
-    // horizon.
-    if (truncatedRoad.length < goalInfo.roadall.length) {
-      let lastSegmentFull = goalInfo.fullroad[truncatedRoad.length];
-      truncatedRoad.push([
-        bm.beeDateFormat(oneWeekOut),
-        null,
-        lastSegmentFull[2],
-      ]);
-    } else {
-      // If the goal ends before one week from today, the rate is zero
-      // after the end.
-      truncatedRoad.push([bm.beeDateFormat(oneWeekOut), null, 0]);
-    }
-    let oneWeekOutDay = oneWeekOut.day();
-    let newSegment = [];
-    for (let i = 0; i < 7; i++) {
-      let targetDate = oneWeekOut.clone();
-      if (oneWeekOutDay < i) {
-        targetDate.add(i - oneWeekOutDay, "d");
-      } else {
-        targetDate.add(i - oneWeekOutDay + 7, "d");
+  return bm
+    .getGoal(token, goalName)
+    .then(
+      (goalInfo: {
+        frozen: unknown;
+        roadall: bm.Roadall;
+        fullroad: bm.Fullroad;
+        runits: unknown;
+      }) => {
+        // The idea here is to keep the road exactly the same up until the
+        // akrasia horizon, then schedule by days of the week from akrasia
+        // horizon to akrasia horizon + 7 days. To that end, we remove all
+        // segments before a week from today, add a new segment that continues
+        // the last rate up until the akrasia horizon, then add all our stuff
+        // after that.
+        console.log(goalInfo);
+        if (goalInfo.frozen) {
+          return Promise.reject(
+            "goal is frozen, editing road may cause spurious derail."
+          );
+        }
+        const rUnitMultiplier = bm.getRUnitMultiplier(goalInfo);
+        const truncatedRoad: bm.Roadall = goalInfo.roadall
+          .map((x): [Moment, number | null, number | null] => [
+            moment(x[0], "X"),
+            x[1],
+            x[2],
+          ])
+          .filter((x) => x[0] < oneWeekOut)
+          .map((x) => [bm.beeDateFormat(x[0]), x[1], x[2]]);
+        // Add the segment that continues at the same rate up until the akrasia
+        // horizon.
+        if (truncatedRoad.length < goalInfo.roadall.length) {
+          const lastSegmentFull = goalInfo.fullroad[truncatedRoad.length];
+          truncatedRoad.push([
+            bm.beeDateFormat(oneWeekOut),
+            null,
+            lastSegmentFull[2],
+          ]);
+        } else {
+          // If the goal ends before one week from today, the rate is zero
+          // after the end.
+          truncatedRoad.push([bm.beeDateFormat(oneWeekOut), null, 0]);
+        }
+        const oneWeekOutDay = oneWeekOut.day();
+        const newSegment: bm.Roadall = [];
+        for (let i = 0; i < 7; i++) {
+          const targetDate = oneWeekOut.clone();
+          if (oneWeekOutDay < i) {
+            targetDate.add(i - oneWeekOutDay, "d");
+          } else {
+            targetDate.add(i - oneWeekOutDay + 7, "d");
+          }
+          newSegment.push([
+            bm.beeDateFormat(targetDate),
+            null,
+            rUnitMultiplier * schedule[i],
+          ]);
+        }
+        newSegment.sort(); // this is done by comparing on string representations.
+        console.log("New segment:");
+        console.log(newSegment);
+        const newRoadall: bm.Roadall = truncatedRoad.concat(newSegment);
+        return bm.setRoad(goalName, newRoadall, token);
       }
-      newSegment.push([
-        bm.beeDateFormat(targetDate),
-        null,
-        rUnitMultiplier * schedule[i],
-      ]);
-    }
-    newSegment.sort(); // this is done by comparing on string representations.
-    console.log("New segment:");
-    console.log(newSegment);
-    let newRoadall = truncatedRoad.concat(newSegment);
-    return bm.setRoad(goalName, newRoadall, token);
-  });
+    );
 }
 
-function jsonResponse(cb, status, data) {
+function jsonResponse(cb: Callback, status: number, data: unknown) {
   cb(null, {
     statusCode: status,
     headers: {
@@ -91,7 +105,7 @@ function jsonResponse(cb, status, data) {
   });
 }
 
-function putUserInfo(uinfo) {
+function putUserInfo(uinfo: unknown) {
   const validationResult = jsonschema.validate(uinfo, userDataSchema);
   if (validationResult.valid) {
     return dynamoDoc
@@ -108,7 +122,13 @@ function putUserInfo(uinfo) {
 // This is called every time the frontend is loaded, and therefore after every
 // new authorization. It's responsible for updating the token in the DB if it's
 // changed.
-module.exports.getGoalSlugs = ipBlockWrapper((event, context, cb) => {
+export const getGoalSlugs = (
+  event: {
+    queryStringParameters: Record<string, string>;
+  },
+  context: unknown,
+  cb: Callback
+) => {
   if (
     !event.queryStringParameters ||
     !event.queryStringParameters.access_token ||
@@ -118,14 +138,14 @@ module.exports.getGoalSlugs = ipBlockWrapper((event, context, cb) => {
   } else {
     const access_token = event.queryStringParameters.access_token;
     const username = event.queryStringParameters.username;
-    const logMsg = (str) => console.log(username + ": " + str);
+    const logMsg = (str: string) => console.log(username + ": " + str);
     bm.getUserInfo(access_token).then(
-      (uinfo) => {
+      (uinfo: { username: unknown; goals: unknown }) => {
         if (username === uinfo.username) {
           // If the username that Beeminder returns for the given token
           // matches the username in our query string...
           getStoredGoals(username).then(
-            (ddbItem) => {
+            (ddbItem: { token: string }) => {
               if (ddbItem.token === access_token) {
                 // Token doesn't need updating.
                 logMsg("existing user");
@@ -139,7 +159,7 @@ module.exports.getGoalSlugs = ipBlockWrapper((event, context, cb) => {
                 });
               }
             },
-            (err) => {
+            (err: { type: string }) => {
               if (err.type === goalErrorTypes.noSuchUser) {
                 putUserInfo({
                   token: access_token,
@@ -160,7 +180,7 @@ module.exports.getGoalSlugs = ipBlockWrapper((event, context, cb) => {
           jsonResponse(cb, 401, "passed username doesn't match token.");
         }
       },
-      (err) => {
+      (err: { statusCode: number }) => {
         if (err.statusCode === 401) {
           jsonResponse(cb, 401, "Beeminder API returned 401");
         } else {
@@ -170,16 +190,16 @@ module.exports.getGoalSlugs = ipBlockWrapper((event, context, cb) => {
       }
     );
   }
-});
+};
 
 const goalErrorTypes = {
   badDb: "invalid item in db",
   noSuchUser: "no such user",
 };
 
-function goalError(type, msg) {
+function goalError(type: string, msg: string | jsonschema.ValidationError[]) {
   let ok = false;
-  for (let ty of _.values(goalErrorTypes)) {
+  for (const ty of _.values(goalErrorTypes)) {
     if (type === ty) {
       ok = true;
       break;
@@ -196,7 +216,7 @@ function goalError(type, msg) {
 }
 
 // Pull a user's goals out of the DB and validate it.
-function getStoredGoals(username) {
+function getStoredGoals(username: string) {
   return dynamoDoc
     .get({
       TableName: usersTableName,
@@ -205,11 +225,11 @@ function getStoredGoals(username) {
       },
     })
     .promise()
-    .then((res) => {
+    .then((res: { Item: unknown }) => {
       if (_.isEqual(res, {})) {
         return Promise.reject(goalError(goalErrorTypes.noSuchUser, ""));
       } else {
-        let validationResult = jsonschema.validate(res.Item, userDataSchema);
+        const validationResult = jsonschema.validate(res.Item, userDataSchema);
         if (validationResult.valid) {
           return Promise.resolve(res.Item);
         } else {
@@ -221,7 +241,13 @@ function getStoredGoals(username) {
     });
 }
 
-module.exports.getStoredGoalsHTTP = ipBlockWrapper((event, context, cb) => {
+export const getStoredGoalsHTTP = (
+  event: {
+    queryStringParameters: Record<string, string>;
+  },
+  context: unknown,
+  cb: Callback
+) => {
   if (
     !event.queryStringParameters ||
     !event.queryStringParameters.username ||
@@ -232,14 +258,14 @@ module.exports.getStoredGoalsHTTP = ipBlockWrapper((event, context, cb) => {
     });
   } else {
     getStoredGoals(event.queryStringParameters.username).then(
-      (val) => {
+      (val: { token: unknown }) => {
         if (val.token === event.queryStringParameters.token) {
           jsonResponse(cb, 200, val);
         } else {
           jsonResponse(cb, 401, "Passed token doesn't match DDB");
         }
       },
-      (fail) => {
+      (fail: { type: string }) => {
         if (fail.type === goalErrorTypes.noSuchUser) {
           jsonResponse(cb, 404, {});
         } else {
@@ -248,27 +274,31 @@ module.exports.getStoredGoalsHTTP = ipBlockWrapper((event, context, cb) => {
       }
     );
   }
-});
+};
 
-module.exports.setGoalSchedule = ipBlockWrapper((event, context, cb) => {
+export const setGoalSchedule = (
+  event: { body: string },
+  context: unknown,
+  cb: Callback
+) => {
   try {
     const bodyParsed = JSON.parse(event.body);
     const validationResult = jsonschema.validate(bodyParsed, userDataSchema);
     const putUserInfoAndExit = () =>
       putUserInfo(bodyParsed).then(
         () => jsonResponse(cb, 200, "ok"),
-        (err) => jsonResponse(cb, 500, err)
+        (err: unknown) => jsonResponse(cb, 500, err)
       );
 
     const tokenValidatedInDDB = () =>
       getStoredGoals(bodyParsed.name).then(
-        (record) => record.token === bodyParsed.token,
+        (record: { token: unknown }) => record.token === bodyParsed.token,
         () => false
       );
 
     if (validationResult.valid) {
       // If the token sent matches our database, we can assume it's good.
-      tokenValidatedInDDB().then((validated) => {
+      tokenValidatedInDDB().then((validated: unknown) => {
         if (validated) {
           queueSetSched(bodyParsed.name).then(() => putUserInfoAndExit());
         } else {
@@ -280,35 +310,37 @@ module.exports.setGoalSchedule = ipBlockWrapper((event, context, cb) => {
     }
   } catch (ex) {
     if (ex instanceof SyntaxError) {
-      jsonResponse(cb, 400, "post body not valid JSON: " + ex.message);
+      jsonResponse(cb, 400, `post body not valid JSON: ${ex.message}`);
     } else {
       throw ex;
     }
   }
-});
+};
 
 // For a bug report against Firefox...
 
-module.exports.jsonstring = (event, context, cb) =>
+export const jsonstring = (event: unknown, context: unknown, cb: Callback) =>
   jsonResponse(cb, 200, "hello");
 
-function setsched(username) {
-  return getStoredGoals(username).then((res) => {
-    return Promise.all(
-      _.map(
-        (ent) => scheduleGoal(res.token, ent[0], ent[1]),
-        _.toPairs(res.goals)
-      )
-    );
-  });
+function _setsched(username: string) {
+  return getStoredGoals(username).then(
+    (res: { token: unknown; goals: Record<string, unknown> }) => {
+      return Promise.all(
+        _.map(
+          (ent: [string, number[]]) => scheduleGoal(res.token, ent[0], ent[1]),
+          _.toPairs(res.goals)
+        )
+      );
+    }
+  );
 }
 
-module.exports.setsched = (username, context, cb) => {
+export const setsched = (username: unknown, context: unknown, cb: Callback) => {
   if (typeof username === "string") {
-    console.log("scheduling " + username);
-    setsched(username).then(
-      (res) => cb(null, res),
-      (err) => {
+    console.log(`scheduling ${username}`);
+    _setsched(username).then(
+      (res: unknown) => cb(null, res),
+      (err: unknown) => {
         // FIXME: This should disable accounts with now-invalid
         // credentials.
         console.log(err);
@@ -320,7 +352,7 @@ module.exports.setsched = (username, context, cb) => {
   }
 };
 
-const queueSetSched = (uname) => {
+const queueSetSched = (uname: unknown) => {
   console.log("queueing scheduling for: " + uname);
   if (process.env.IS_OFFLINE) {
     console.log("offline environment, not queueing async scheduling");
@@ -328,7 +360,7 @@ const queueSetSched = (uname) => {
   } else {
     return lambda
       .invoke({
-        FunctionName: "beescheduler-" + process.env.SLS_STAGE + "-setsched",
+        FunctionName: `beescheduler-${process.env.SLS_STAGE}-setsched`,
         InvocationType: "Event",
         Payload: JSON.stringify(uname),
       })
@@ -336,7 +368,7 @@ const queueSetSched = (uname) => {
   }
 };
 
-module.exports.queueSetScheds = (evt, ctx, cb) => {
+export const queueSetScheds = (evt: unknown, ctx: unknown, cb: Callback) => {
   dynamoDoc
     .scan({
       TableName: usersTableName,
@@ -346,41 +378,43 @@ module.exports.queueSetScheds = (evt, ctx, cb) => {
     })
     .promise()
     .then(
-      (res) => {
+      (res: { LastEvaluatedKey: undefined; Items: { name: unknown }[] }) => {
         if (res.LastEvaluatedKey !== undefined) {
           cb(
             "Scan needed more than 1 page of results! Echo, go implement this.",
             null
           );
         } else {
-          Promise.all(
-            _.map((item) => queueSetSched(item.name), res.Items)
-          ).then(
+          const promises = _.map(
+            (item: { name: unknown }) => queueSetSched(item.name),
+            res.Items
+          );
+          Promise.all(promises).then(
             (res) => cb(null, res),
             (err) => cb(err, null)
           );
         }
       },
-      (err) => cb(err, null)
+      (err: unknown) => cb(err, null)
     );
 };
 
-module.exports.backupDDB = (evt, ctx, cb) => {
+export const backupDDB = (evt: unknown, ctx: unknown, cb: Callback) => {
   console.log("Starting backup of " + usersTableName);
-  let backup = new dynamoBackup({
+  const backup = new dynamoBackup({
     bucket: "beescheduler-" + process.env.SLS_STAGE + "-ddb-backup",
     stopOnFailure: true,
     base64Binay: true,
   });
-  backup.on("error", (data) => {
+  backup.on("error", (data: unknown) => {
     console.log("Error backing up!");
     console.log(JSON.stringify(data));
   });
-  backup.on("end-backup", (tableName, backupDuration) => {
+  backup.on("end-backup", (tableName: string, backupDuration: number) => {
     console.log("Done backing up " + tableName);
     console.log("Backup took " + backupDuration.valueOf() / 1000 + " seconds.");
   });
-  backup.backupTable(usersTableName, (err) => {
+  backup.backupTable(usersTableName, (err: string) => {
     if (err) {
       console.log("Backup error: " + err);
       cb(err, null);
@@ -390,22 +424,3 @@ module.exports.backupDDB = (evt, ctx, cb) => {
     }
   });
 };
-
-const echosIP = "CHANGETHIS";
-
-// Take a HTTP request handler and wrap it such that requests to stages other
-// than prod are blocked if they don't come from my IP address.
-function ipBlockWrapper(func) {
-  if (process.env.IS_OFFLINE || process.env.SLS_STAGE === "prod") {
-    return func;
-  } else {
-    return (evt, ctx, cb) => {
-      const incomingIp = evt.requestContext.identity.sourceIp;
-      if (incomingIp === echosIP) {
-        func(evt, ctx, cb);
-      } else {
-        jsonResponse(cb, 401, "request blocked by IP");
-      }
-    };
-  }
-}
