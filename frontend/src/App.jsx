@@ -126,7 +126,7 @@ class App extends React.Component {
       // stored.
       const authParams = {
         client_id: this.client_id(),
-        redirect_uri: document.location,
+        redirect_uri: document.location.origin,
         response_type: "token"
       };
       const authUrl = "https://www.beeminder.com/apps/authorize?" + queryString.stringify(authParams);
