@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  baserow-sdk:
+    specifier: github:narthur/baserow-sdk
+    version: github.com/narthur/baserow-sdk/1f5f39619cc86ec69e0f315f6b0e91d9523a36de
   dynamo-backup-to-s3:
     specifier: ^0.6.1
     version: 0.6.1
@@ -26,9 +29,6 @@ dependencies:
   request-promise-native:
     specifier: ^1.0.3
     version: 1.0.9(request@2.88.2)
-  serverless-dynamodb-client:
-    specifier: 0.0.2
-    version: 0.0.2
   tsx:
     specifier: ^4.7.1
     version: 4.7.1
@@ -1054,6 +1054,16 @@ packages:
     resolution: {integrity: sha512-NmWvPnx0F1SfrQbYwOi7OeaNGokp9XhzNioJ/CSBs8Qa4vxug81mhJEAVZwxXuBmYB5KDRfMq/F3RR0BIU7sWg==}
     dev: false
 
+  /axios@1.6.8:
+    resolution: {integrity: sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==}
+    dependencies:
+      follow-redirects: 1.15.6
+      form-data: 4.0.0
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
   /b64@3.1.1:
     resolution: {integrity: sha512-NVOjBBqM/gDDIZj0qkZAmNz6ZlfS1pYyD+sDyNlDTXf3o/3KgpfCJFwXXCBoBKUCKvl6fg+zXPzkGSN43RsDAg==}
     engines: {node: '>=6.0.0'}
@@ -1978,6 +1988,16 @@ packages:
     resolution: {integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==}
     dev: true
 
+  /follow-redirects@1.15.6:
+    resolution: {integrity: sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dev: false
+
   /for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
     dependencies:
@@ -2004,6 +2024,15 @@ packages:
       combined-stream: 1.0.8
       mime-types: 2.1.35
     dev: true
+
+  /form-data@4.0.0:
+    resolution: {integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==}
+    engines: {node: '>= 6'}
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      mime-types: 2.1.35
+    dev: false
 
   /forwarded@0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
@@ -3213,6 +3242,10 @@ packages:
       ipaddr.js: 1.9.1
     dev: false
 
+  /proxy-from-env@1.1.0:
+    resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
+    dev: false
+
   /psl@1.9.0:
     resolution: {integrity: sha512-E/ZsdU4HLs/68gYzgGTkMicWTLPdAftJLfJFlLUAAKZGkStNU72sZjT66SnMDVOfOWY/YAoiD7Jxa9iHvngcag==}
     dev: false
@@ -3461,13 +3494,6 @@ packages:
       send: 0.18.0
     transitivePeerDependencies:
       - supports-color
-    dev: false
-
-  /serverless-dynamodb-client@0.0.2:
-    resolution: {integrity: sha512-fFqs2hcLVB6eOQBZIRQIWtmL1A4vbb8A5CxdP4Lo52e3dQtRcKFcKm3qwKH8+GIP4hLWm5wPjq1RK3xWzRNfcw==}
-    engines: {node: '>=4.0'}
-    dependencies:
-      aws-sdk: 2.1588.0
     dev: false
 
   /serverless-dynamodb-local@0.2.40:
@@ -3900,7 +3926,6 @@ packages:
     resolution: {integrity: sha512-KrPd3PKaCLr78MalgiwJnA25Nm8HAmdwN3mYUYZgG/wizIo9EainNVQI9/yDavtVFRN2h3k8uf3GLHuhDMgEHg==}
     engines: {node: '>=14.17'}
     hasBin: true
-    dev: true
 
   /unbox-primitive@1.0.2:
     resolution: {integrity: sha512-61pPlCD9h51VoreyJ0BReideM3MDKMKnh6+V9L08331ipq6Q8OFXZYiqP6n/tbHx4s5I9uRhcye6BrbkizkBDw==}
@@ -4129,3 +4154,15 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
+
+  github.com/narthur/baserow-sdk/1f5f39619cc86ec69e0f315f6b0e91d9523a36de:
+    resolution: {tarball: https://codeload.github.com/narthur/baserow-sdk/tar.gz/1f5f39619cc86ec69e0f315f6b0e91d9523a36de}
+    name: baserow-sdk
+    version: 1.0.0
+    requiresBuild: true
+    dependencies:
+      axios: 1.6.8
+      typescript: 5.4.3
+    transitivePeerDependencies:
+      - debug
+    dev: false

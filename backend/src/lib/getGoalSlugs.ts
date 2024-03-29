@@ -3,7 +3,7 @@ import * as bm from "./beeminder";
 import { jsonResponse } from "./jsonResponse";
 import { putUserInfo } from "./putUserInfo";
 import { GOAL_ERROR_TYPES } from "../constants";
-import { Callback } from "../types";
+import { Callback, DbUser } from "../types";
 import { getStoredGoals } from "./getStoredGoals";
 
 // This is called every time the frontend is loaded, and therefore after every
@@ -33,15 +33,15 @@ export const getGoalSlugs = (
           // If the username that Beeminder returns for the given token
           // matches the username in our query string...
           getStoredGoals(username).then(
-            (ddbItem: { token: string }) => {
-              if (ddbItem.token === access_token) {
+            (result: { user: DbUser }) => {
+              if (result.user.token === access_token) {
                 // Token doesn't need updating.
                 logMsg("existing user");
                 jsonResponse(cb, 200, uinfo.goals);
               } else {
                 // Token does need updating.
-                ddbItem.token = access_token;
-                putUserInfo(ddbItem).then(() => {
+                result.user.token = access_token;
+                putUserInfo(result).then(() => {
                   logMsg("update token");
                   jsonResponse(cb, 200, uinfo.goals);
                 });

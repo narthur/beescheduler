@@ -4,7 +4,7 @@ import userDataSchema from "../../userDataSchema";
 import { jsonResponse } from "./jsonResponse";
 import { putUserInfo } from "./putUserInfo";
 import { getStoredGoals } from "./getStoredGoals";
-import { Callback } from "../types";
+import { Callback, DbUser } from "../types";
 import { queueSetSched } from "./queueSetSched";
 
 export const setGoalSchedule = (
@@ -23,7 +23,7 @@ export const setGoalSchedule = (
 
     const tokenValidatedInDDB = () =>
       getStoredGoals(bodyParsed.name).then(
-        (record: { token: unknown }) => record.token === bodyParsed.token,
+        (result: { user: DbUser }) => result.user.token === bodyParsed.token,
         () => false
       );
 

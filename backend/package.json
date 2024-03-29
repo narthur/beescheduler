@@ -4,6 +4,7 @@
   "description": "",
   "main": "handler.js",
   "dependencies": {
+    "baserow-sdk": "github:narthur/baserow-sdk",
     "dynamo-backup-to-s3": "^0.6.1",
     "express": "^4.19.2",
     "jsonschema": "^1.1.1",
@@ -11,7 +12,6 @@
     "moment": "^2.15.1",
     "request": "^2.75.0",
     "request-promise-native": "^1.0.3",
-    "serverless-dynamodb-client": "0.0.2",
     "tsx": "^4.7.1"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@
 import { jsonResponse } from "./jsonResponse";
 import { getStoredGoals } from "./getStoredGoals";
 import { GOAL_ERROR_TYPES } from "../constants";
-import { Callback } from "../types";
+import { Callback, DbUser } from "../types";
 
 export const getStoredGoalsHTTP = (
   event: {
@@ -21,9 +21,9 @@ export const getStoredGoalsHTTP = (
     });
   } else {
     getStoredGoals(event.queryStringParameters.username).then(
-      (val: { token: unknown }) => {
-        if (val.token === event.queryStringParameters.token) {
-          jsonResponse(cb, 200, val);
+      (result: { user: DbUser }) => {
+        if (result.user.token === event.queryStringParameters.token) {
+          jsonResponse(cb, 200, result);
         } else {
           jsonResponse(cb, 401, "Passed token doesn't match DDB");
         }

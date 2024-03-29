@@ -1,17 +1,23 @@
 "use strict";
-import _ from "lodash/fp";
 import { scheduleGoal } from "./scheduleGoal";
 import { getStoredGoals } from "./getStoredGoals";
-import { Callback } from "../types";
+import { Callback, DbGoal, DbUser } from "../types";
 
 function _setsched(username: string) {
   return getStoredGoals(username).then(
-    (res: { token: unknown; goals: Record<string, unknown> }) => {
+    (response: { user: DbUser; goals: DbGoal[] }) => {
       return Promise.all(
-        _.map(
-          (ent: [string, number[]]) => scheduleGoal(res.token, ent[0], ent[1]),
-          _.toPairs(res.goals)
-        )
+        response.goals.map((goal: DbGoal) => {
+          return scheduleGoal(response.user.token, goal.slug, [
+            parseFloat(goal["1"]),
+            parseFloat(goal["2"]),
+            parseFloat(goal["3"]),
+            parseFloat(goal["4"]),
+            parseFloat(goal["5"]),
+            parseFloat(goal["6"]),
+            parseFloat(goal["7"]),
+          ]);
+        })
       );
     }
   );
