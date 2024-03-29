@@ -23,7 +23,7 @@ export const setGoalSchedule = (
 
     const tokenValidatedInDDB = () =>
       getStoredGoals(bodyParsed.name).then(
-        (result: { user: DbUser }) => result.user.token === bodyParsed.token,
+        (result: { user?: DbUser }) => result.user?.token === bodyParsed.token,
         () => false
       );
 

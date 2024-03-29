@@ -6,14 +6,17 @@ import { getUser } from "./getUser";
 
 // Pull a user's goals out of the DB and validate it.
 export async function getStoredGoals(username: string): Promise<{
-  user: DbUser;
+  user?: DbUser;
   goals: DbGoal[];
 }> {
   const sdk = getBaserow();
   const user = await getUser(username);
 
   if (!user) {
-    throw new Error("No such user");
+    return {
+      user: undefined,
+      goals: [],
+    };
   }
 
   const { results: goals } = await sdk.listRows<DbGoal>(BASEROW_TABLE.goals, {

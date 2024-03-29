@@ -21,8 +21,8 @@ export const getStoredGoalsHTTP = (
     });
   } else {
     getStoredGoals(event.queryStringParameters.username).then(
-      (result: { user: DbUser }) => {
-        if (result.user.token === event.queryStringParameters.token) {
+      (result: { user?: DbUser }) => {
+        if (result.user?.token === event.queryStringParameters.token) {
           jsonResponse(cb, 200, result);
         } else {
           jsonResponse(cb, 401, "Passed token doesn't match DDB");

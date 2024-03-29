@@ -5,10 +5,13 @@ import { Callback, DbGoal, DbUser } from "../types";
 
 function _setsched(username: string) {
   return getStoredGoals(username).then(
-    (response: { user: DbUser; goals: DbGoal[] }) => {
+    (response: { user?: DbUser; goals: DbGoal[] }) => {
+      if (!response.user) {
+        throw new Error("No user found");
+      }
       return Promise.all(
         response.goals.map((goal: DbGoal) => {
-          return scheduleGoal(response.user.token, goal.slug, [
+          return scheduleGoal(response.user?.token, goal.slug, [
             parseFloat(goal["1"]),
             parseFloat(goal["2"]),
             parseFloat(goal["3"]),

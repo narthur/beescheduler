@@ -33,14 +33,13 @@ export const getGoalSlugs = (
           // If the username that Beeminder returns for the given token
           // matches the username in our query string...
           getStoredGoals(username).then(
-            (result: { user: DbUser }) => {
-              if (result.user.token === access_token) {
+            (result: { user?: DbUser }) => {
+              if (result.user?.token === access_token) {
                 // Token doesn't need updating.
                 logMsg("existing user");
                 jsonResponse(cb, 200, uinfo.goals);
               } else {
                 // Token does need updating.
-                result.user.token = access_token;
                 putUserInfo({
                   name: username,
                   token: access_token,
