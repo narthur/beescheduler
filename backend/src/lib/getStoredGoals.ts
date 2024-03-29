@@ -17,7 +17,7 @@ export function getStoredGoals(username: string) {
       },
     })
     .promise()
-    .then((res: { Item: unknown }) => {
+    .then((res: { Item?: Record<string, unknown> }) => {
       if (_.isEqual(res, {})) {
         return Promise.reject(goalError(GOAL_ERROR_TYPES.noSuchUser, ""));
       } else {

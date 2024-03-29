@@ -4,7 +4,7 @@ import userDataSchema from "../../userDataSchema";
 import { USERS_TABLE_NAME } from "../constants";
 import { doc } from "serverless-dynamodb-client";
 
-export function putUserInfo(uinfo: unknown) {
+export function putUserInfo(uinfo: Record<string, unknown>) {
   const validationResult = jsonschema.validate(uinfo, userDataSchema);
   if (validationResult.valid) {
     return doc

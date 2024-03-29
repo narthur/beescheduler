@@ -15,7 +15,10 @@ export const queueSetScheds = (evt: unknown, ctx: unknown, cb: Callback) => {
     })
     .promise()
     .then(
-      (res: { LastEvaluatedKey: undefined; Items: { name: unknown }[] }) => {
+      (res: {
+        LastEvaluatedKey?: unknown;
+        Items?: Record<string, unknown>[];
+      }) => {
         if (res.LastEvaluatedKey !== undefined) {
           cb(
             "Scan needed more than 1 page of results! Echo, go implement this.",

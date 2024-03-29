@@ -6,7 +6,7 @@ import { Callback } from "../types";
 export const backupDDB = (evt: unknown, ctx: unknown, cb: Callback) => {
   console.log("Starting backup of " + USERS_TABLE_NAME);
   const backup = new DynamoBackup({
-    bucket: "beescheduler-" + process.env.SLS_STAGE + "-ddb-backup",
+    bucket: `beescheduler-${process.env.SLS_STAGE}-ddb-backup`,
     stopOnFailure: true,
     base64Binay: true,
   });
