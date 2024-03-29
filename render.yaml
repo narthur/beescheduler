@@ -1,0 +1,7 @@
+services:
+  - name: beescheduler-web
+    type: web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm i -g pnpm && pnpm install && pnpm run build
+    staticPublishPath: ./dist
