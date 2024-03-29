@@ -1,6 +1,5 @@
 import express, { NextFunction, Request, Response } from "express";
 import { Callback } from "./types";
-import { jsonstring } from "./lib/jsonstring";
 import { setGoalSchedule } from "./lib/setGoalSchedule";
 import { getStoredGoalsHTTP } from "./lib/getStoredGoalsHTTP";
 import { getGoalSlugs } from "./lib/getGoalSlugs";
@@ -50,7 +49,6 @@ function adapter(
 app.get("/getGoalSlugs", adapter(getGoalSlugs));
 app.get("/storedGoals", adapter(getStoredGoalsHTTP));
 app.post("/storedGoals", adapter(setGoalSchedule));
-app.get("/jsonstring", adapter(jsonstring));
 
 app.listen(3001, () => {
   console.log("Server is running on port 3001");
