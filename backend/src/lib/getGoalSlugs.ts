@@ -1,10 +1,10 @@
 "use strict";
-import * as bm from "./beeminder";
+import * as bm from "./services/beeminder";
 import { jsonResponse } from "./jsonResponse";
 import { putUserInfo } from "./putUserInfo";
 import { GOAL_ERROR_TYPES } from "../constants";
 import { Callback, DbUser } from "../types";
-import { getStoredGoals } from "./getStoredGoals";
+import { getStoredGoals } from "./services/baserow/getStoredGoals";
 
 // This is called every time the frontend is loaded, and therefore after every
 // new authorization. It's responsible for updating the token in the DB if it's
@@ -41,7 +41,10 @@ export const getGoalSlugs = (
               } else {
                 // Token does need updating.
                 result.user.token = access_token;
-                putUserInfo(result).then(() => {
+                putUserInfo({
+                  name: username,
+                  token: access_token,
+                }).then(() => {
                   logMsg("update token");
                   jsonResponse(cb, 200, uinfo.goals);
                 });

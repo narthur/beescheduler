@@ -3,7 +3,7 @@ import jsonschema from "jsonschema";
 import userDataSchema from "../../userDataSchema";
 import { jsonResponse } from "./jsonResponse";
 import { putUserInfo } from "./putUserInfo";
-import { getStoredGoals } from "./getStoredGoals";
+import { getStoredGoals } from "./services/baserow/getStoredGoals";
 import { Callback, DbUser } from "../types";
 import { queueSetSched } from "./queueSetSched";
 

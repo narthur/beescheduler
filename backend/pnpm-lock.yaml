@@ -7,7 +7,7 @@ settings:
 dependencies:
   baserow-sdk:
     specifier: github:narthur/baserow-sdk
-    version: github.com/narthur/baserow-sdk/1f5f39619cc86ec69e0f315f6b0e91d9523a36de
+    version: github.com/narthur/baserow-sdk/2196275c8cb840e8ba0f91c015277992b3e7be24
   dynamo-backup-to-s3:
     specifier: ^0.6.1
     version: 0.6.1
@@ -4155,10 +4155,11 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  github.com/narthur/baserow-sdk/1f5f39619cc86ec69e0f315f6b0e91d9523a36de:
-    resolution: {tarball: https://codeload.github.com/narthur/baserow-sdk/tar.gz/1f5f39619cc86ec69e0f315f6b0e91d9523a36de}
+  github.com/narthur/baserow-sdk/2196275c8cb840e8ba0f91c015277992b3e7be24:
+    resolution: {tarball: https://codeload.github.com/narthur/baserow-sdk/tar.gz/2196275c8cb840e8ba0f91c015277992b3e7be24}
     name: baserow-sdk
     version: 1.0.0
+    prepare: true
     requiresBuild: true
     dependencies:
       axios: 1.6.8

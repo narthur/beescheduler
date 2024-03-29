@@ -1,6 +1,6 @@
 "use strict";
 import { scheduleGoal } from "./scheduleGoal";
-import { getStoredGoals } from "./getStoredGoals";
+import { getStoredGoals } from "./services/baserow/getStoredGoals";
 import { Callback, DbGoal, DbUser } from "../types";
 
 function _setsched(username: string) {

@@ -1,6 +1,6 @@
 "use strict";
 import { jsonResponse } from "./jsonResponse";
-import { getStoredGoals } from "./getStoredGoals";
+import { getStoredGoals } from "./services/baserow/getStoredGoals";
 import { GOAL_ERROR_TYPES } from "../constants";
 import { Callback, DbUser } from "../types";
 

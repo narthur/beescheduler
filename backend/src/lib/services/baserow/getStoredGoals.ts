@@ -1,7 +1,8 @@
 "use strict";
-import { BASEROW_TABLE } from "../constants";
+import { BASEROW_TABLE } from "../../../constants";
 import getBaserow from "./getBaserow";
-import { DbGoal, DbUser } from "../types";
+import { DbGoal, DbUser } from "../../../types";
+import { getUser } from "./getUser";
 
 // Pull a user's goals out of the DB and validate it.
 export async function getStoredGoals(username: string): Promise<{
@@ -32,25 +33,11 @@ export async function getStoredGoals(username: string): Promise<{
   //   });
 
   const sdk = getBaserow();
-  const { results: users } = await sdk.listRows<DbUser>(BASEROW_TABLE.users, {
-    filters: {
-      filter_type: "AND",
-      filters: [
-        {
-          type: "equal",
-          field: "username",
-          value: username,
-        },
-      ],
-      groups: [],
-    },
-  });
+  const user = await getUser(username);
 
-  if (users.length !== 1) {
-    throw new Error(`User not found. Number of matches: ${users.length}`);
+  if (!user) {
+    throw new Error("No such user");
   }
-
-  const user = users[0];
 
   const { results: goals } = await sdk.listRows<DbGoal>(BASEROW_TABLE.goals, {
     filters: {

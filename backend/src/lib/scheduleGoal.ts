@@ -1,6 +1,6 @@
 "use strict";
 import moment, { Moment } from "moment";
-import * as bm from "./beeminder";
+import * as bm from "./services/beeminder";
 
 export function scheduleGoal(
   token: unknown,

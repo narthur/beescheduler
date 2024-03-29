@@ -3,6 +3,14 @@
   "version": "0.0.1",
   "description": "",
   "main": "handler.js",
+  "author": "Echo Nolan",
+  "license": "AGPL-1.0",
+  "scripts": {
+    "start": "tsx ./src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "checkTs": "tsc --noEmit",
+    "lint": "eslint ."
+  },
   "dependencies": {
     "baserow-sdk": "github:narthur/baserow-sdk",
     "dynamo-backup-to-s3": "^0.6.1",
@@ -25,11 +33,5 @@
     "serverless-dynamodb-local": "^0.2.20",
     "serverless-offline": "^3.13.1",
     "typescript": "^5.4.3"
-  },
-  "scripts": {
-    "start": "tsx ./src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Echo Nolan",
-  "license": "AGPL-1.0"
+  }
 }
