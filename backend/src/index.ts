@@ -1,11 +1,9 @@
 import express, { NextFunction, Request, Response } from "express";
-import {
-  getGoalSlugs,
-  getStoredGoalsHTTP,
-  setGoalSchedule,
-  jsonstring,
-  Callback,
-} from "./lib/handler";
+import { Callback } from "./types";
+import { jsonstring } from "./lib/jsonstring";
+import { setGoalSchedule } from "./lib/setGoalSchedule";
+import { getStoredGoalsHTTP } from "./lib/getStoredGoalsHTTP";
+import { getGoalSlugs } from "./lib/getGoalSlugs";
 
 const app = express();
 
