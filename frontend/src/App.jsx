@@ -118,15 +118,7 @@ class App extends React.Component {
   };
 
   client_id() {
-    if (document.location.href.match(/localhost/) !== null) {
-      return "CHANGETHIS";
-    } else if (document.location.href.match(/beescheduler-dev.echonolan.net/) !== null) {
-      return "CHANGETHIS";
-    } else if (document.location.href.match(/beescheduler.echonolan.net/)) {
-      return "CHANGETHIS";
-    } else {
-      alert("Couldn't figure out which client ID to use, aborting");
-    }
+    return import.meta.env.VITE_BEEMINDER_CLIENT_ID
   }
 
   onAuthFail = () => this.setState({
