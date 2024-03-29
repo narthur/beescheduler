@@ -62,8 +62,10 @@ export const getGoalSlugs = (
                 });
               } else {
                 logMsg("DDB error fetching");
-                console.log(JSON.stringify(err));
-                jsonResponse(cb, 500, "DynamoDB error");
+                console.dir(err, {
+                  depth: null,
+                });
+                jsonResponse(cb, 500, "Baserow error");
               }
             }
           );
